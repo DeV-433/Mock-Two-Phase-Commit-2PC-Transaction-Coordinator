@@ -187,15 +187,6 @@ The full logs are in `logs/coordinator.log`, `logs/bank-a.log` and `logs/bank-b.
 
 ---
 
-## Edge cases handled
-
-* **Late vote after a timeout**: a participant that finishes preparing *after* the coordinator aborted notices the abort and discards its work, so no lock is left behind.
-* **Reset while a participant is stalled**: each reset starts a new epoch; a request that was stalled across the reset is discarded when it wakes up instead of locking money.
-* **Duplicate messages**: a repeated `PREPARE` doesn't reserve the money twice, and repeated `COMMIT`/`ABORT` messages are harmless (idempotent).
-* **Participant down**: an unreachable participant counts as a NO vote, so the transaction aborts. Phase 2 retries the decision 3 times and logs that it must be re-sent when the participant recovers. The dashboard shows "2 / 3 nodes online".
-* **Bad input**: malformed JSON, non-integer or huge amounts, unknown participants and transfers to the same bank are rejected with a `400` and a clear message. Zero or negative amounts are accepted on purpose: the participants vote NO, which shows an abort.
-* **Unique transaction ids**: ids keep counting across resets, so a late log line from before a reset can never be confused with a new transaction.
-
 ## Simplifications (this is a mock)
 
 * State lives in memory. The log files show what a real system would persist, but nodes don't replay them after a restart, so there is no crash *recovery*.
